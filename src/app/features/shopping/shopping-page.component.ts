@@ -12,6 +12,20 @@ import { I18nService } from '../../i18n/i18n.service';
   imports: [FormsModule, RouterLink],
   template: `
     <section class="stack">
+
+      @if (supabase.user() && groups().length > 1) {
+        <div class="card">
+          <p class="switcher-label">{{ i18n.t('switchGroup') }}</p>
+          <div class="tabs">
+            @for (g of groups(); track g.id) {
+              <button type="button" class="tab" [class.active]="g.invite_code === inviteCode()" (click)="switchGroup(g)">
+                {{ g.name }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+
       <div class="card stack">
         <div class="row">
           <div>
@@ -73,6 +87,10 @@ import { I18nService } from '../../i18n/i18n.service';
     .item input[type=checkbox] { width: 24px; height: 24px; }
     .content { display:grid; gap:.25rem; }
     .pill { display:inline-block; width:max-content; background:#e0f2fe; color:#075985; border-radius:999px; padding:.15rem .5rem; font-size:.85rem; font-weight:700; }
+    .switcher-label { margin: 0 0 .6rem; font-weight: 700; font-size: .8rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+    .tabs { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .tab { background: #e2e8f0; color: #334155; padding: .45rem 1rem; border-radius: 999px; font-size: .9rem; font-weight: 700; transition: background .15s; }
+    .tab.active { background: #2563eb; color: white; }
   `]
 })
 export class ShoppingPageComponent {
@@ -84,6 +102,7 @@ export class ShoppingPageComponent {
 
   readonly inviteCode = signal<string | null>(this.supabase.savedInviteCode);
   readonly group = signal<GroupSummary | null>(null);
+  readonly groups = signal<GroupSummary[]>([]);
   readonly items = signal<ShoppingItem[]>([]);
   readonly error = signal('');
 
@@ -100,7 +119,24 @@ export class ShoppingPageComponent {
       }
       void this.load();
     });
+    effect(() => {
+      if (this.supabase.user()) void this.loadGroups();
+    });
     this.destroyRef.onDestroy(() => this.supabase.unsubscribeItems());
+  }
+
+  async loadGroups(): Promise<void> {
+    try {
+      const list = await this.supabase.getMyGroups();
+      this.groups.set(list);
+      if (!this.inviteCode() && list.length > 0) this.switchGroup(list[0]);
+    } catch { /* non-critical */ }
+  }
+
+  switchGroup(group: GroupSummary): void {
+    this.supabase.saveInviteCode(group.invite_code);
+    this.inviteCode.set(group.invite_code);
+    void this.load();
   }
 
   async load(): Promise<void> {

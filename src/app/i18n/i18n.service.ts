@@ -40,7 +40,11 @@ const dictionaries: Record<Lang, Dict> = {
     listChanged: 'Lista zakupów została zmieniona',
     inviteEmail: 'Zaproś przez e-mail',
     sendInvite: 'Wyślij zaproszenie',
-    inviteSent: 'Zaproszenie wysłane!'
+    inviteSent: 'Zaproszenie wysłane!',
+    yourGroups: 'Twoje grupy',
+    createNewGroup: 'Utwórz nową grupę',
+    shareInvite: 'Udostępnij link lub wyślij e-mail z zaproszeniem',
+    switchGroup: 'Przełącz grupę'
   },
   en: {
     appTitle: 'Family Shopping',
@@ -76,7 +80,11 @@ const dictionaries: Record<Lang, Dict> = {
     listChanged: 'Shopping list changed',
     inviteEmail: 'Invite by email',
     sendInvite: 'Send invite',
-    inviteSent: 'Invite sent!'
+    inviteSent: 'Invite sent!',
+    yourGroups: 'Your groups',
+    createNewGroup: 'Create new group',
+    shareInvite: 'Share the link or send an email invitation',
+    switchGroup: 'Switch group'
   }
 };
 

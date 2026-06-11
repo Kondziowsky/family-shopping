@@ -2,7 +2,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; }
 button, input, textarea { font: inherit; }
-button { cursor: pointer; border: 0; border-radius: 10px; padding: .75rem 1rem; background: red; color: white; font-weight: 700; }
+button { cursor: pointer; border: 0; border-radius: 10px; padding: .75rem 1rem; background: #2563eb; color: white; font-weight: 700; }
 button.secondary { background: #e2e8f0; color: #0f172a; }
 button.danger { background: #dc2626; }
 button:disabled { opacity: .6; cursor: not-allowed; }

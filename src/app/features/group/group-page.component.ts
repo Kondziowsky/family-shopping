@@ -10,44 +10,86 @@ import { I18nService } from '../../i18n/i18n.service';
   standalone: true,
   imports: [FormsModule, RouterLink],
   template: `
-    <section class="card stack">
-      <h1>{{ i18n.t('group') }}</h1>
+    <section class="stack">
+
       @if (!supabase.user()) {
-        <p class="muted">{{ i18n.t('guest') }}. <a routerLink="/login">{{ i18n.t('goToLogin') }}</a></p>
+        <div class="card stack">
+          <h1>{{ i18n.t('group') }}</h1>
+          <p class="muted">{{ i18n.t('guest') }}. <a routerLink="/login">{{ i18n.t('goToLogin') }}</a></p>
+        </div>
       } @else {
-        <form class="row" (ngSubmit)="createGroup()">
-          <label class="grow">{{ i18n.t('groupName') }}
-            <input name="groupName" required [(ngModel)]="groupName" placeholder="Rodzinka">
-          </label>
-          <button type="submit">{{ i18n.t('createGroup') }}</button>
-        </form>
-        <button class="secondary" type="button" (click)="loadGroups()">{{ i18n.t('refresh') }}</button>
+        <div class="card stack">
+          <div class="section-header">
+            <div>
+              <h1>{{ i18n.t('createNewGroup') }}</h1>
+              <p class="muted">{{ i18n.t('groupName') }}</p>
+            </div>
+          </div>
+          <form class="row" (ngSubmit)="createGroup()">
+            <label class="grow">
+              <input name="groupName" required [(ngModel)]="groupName" placeholder="Rodzinka">
+            </label>
+            <button type="submit">{{ i18n.t('createGroup') }}</button>
+          </form>
+        </div>
+
+        @if (groups().length > 0) {
+          <div class="section-label row">
+            <span>{{ i18n.t('yourGroups') }}</span>
+            <span class="spacer"></span>
+            <button class="secondary sm" type="button" (click)="loadGroups()">{{ i18n.t('refresh') }}</button>
+          </div>
+        }
+
+        @for (group of groups(); track group.id) {
+          <article class="card stack">
+            <div class="group-title row">
+              <span class="group-icon">🛒</span>
+              <h2>{{ group.name }}</h2>
+              <span class="spacer"></span>
+              <button class="sm" type="button" (click)="useGroup(group)">{{ i18n.t('save') }}</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="stack sm-stack">
+              <p class="muted hint">{{ i18n.t('shareInvite') }}</p>
+              <label>{{ i18n.t('inviteLink') }}
+                <div class="row">
+                  <input class="grow" readonly [value]="inviteLink(group)">
+                  <button class="secondary sm" type="button" (click)="copy(group)">{{ i18n.t('copy') }}</button>
+                </div>
+              </label>
+              <form class="row" (ngSubmit)="sendInvite(group)">
+                <label class="grow">{{ i18n.t('inviteEmail') }}
+                  <input type="email" [name]="'inviteEmail-' + group.id" [(ngModel)]="inviteEmails[group.id]" placeholder="email@example.com">
+                </label>
+                <button class="sm" type="submit">{{ i18n.t('sendInvite') }}</button>
+              </form>
+              @if (inviteSent() === group.id) { <p class="success">✓ {{ i18n.t('inviteSent') }}</p> }
+            </div>
+          </article>
+        }
       }
 
-      @for (group of groups(); track group.id) {
-        <article class="card stack">
-          <h2>{{ group.name }}</h2>
-          <label>{{ i18n.t('inviteLink') }}
-            <input readonly [value]="inviteLink(group)">
-          </label>
-          <div class="row">
-            <button type="button" (click)="useGroup(group)">{{ i18n.t('save') }}</button>
-            <button class="secondary" type="button" (click)="copy(group)">{{ i18n.t('copy') }}</button>
-          </div>
-          <form class="row" (ngSubmit)="sendInvite(group)">
-            <label class="grow">{{ i18n.t('inviteEmail') }}
-              <input type="email" [name]="'inviteEmail-' + group.id" [(ngModel)]="inviteEmails[group.id]" placeholder="email@example.com">
-            </label>
-            <button type="submit">{{ i18n.t('sendInvite') }}</button>
-          </form>
-          @if (inviteSent() === group.id) { <p class="success">{{ i18n.t('inviteSent') }}</p> }
-        </article>
-      }
-      @if (copied()) { <p class="success">{{ i18n.t('copied') }}</p> }
+      @if (copied()) { <p class="success">✓ {{ i18n.t('copied') }}</p> }
       @if (error()) { <p class="error">{{ error() }}</p> }
     </section>
   `,
-  styles: [`.grow { flex: 1 1 260px; } h2 { margin:0; }`]
+  styles: [`
+    h1 { margin: 0; font-size: 1.25rem; }
+    h2 { margin: 0; font-size: 1.1rem; }
+    .grow { flex: 1 1 200px; }
+    .hint { margin: 0; font-size: .9rem; }
+    .section-label { font-weight: 700; color: #64748b; font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; padding: 0 .25rem; }
+    .section-header { display: flex; align-items: flex-start; gap: 1rem; }
+    .group-title { gap: .6rem; }
+    .group-icon { font-size: 1.4rem; line-height: 1; }
+    .divider { border-top: 1px solid #e2e8f0; margin: 0 -.25rem; }
+    .sm-stack { gap: .75rem; }
+    .sm { padding: .5rem .85rem; font-size: .9rem; }
+    input.grow { flex: 1 1 200px; width: auto; }
+  `]
 })
 export class GroupPageComponent {
   readonly supabase = inject(SupabaseService);
