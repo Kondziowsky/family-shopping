@@ -87,6 +87,13 @@ export class SupabaseService {
     if (error) throw error;
   }
 
+  async sendGroupInvite(groupId: string, email: string): Promise<void> {
+    const { error } = await this.client.functions.invoke('send-group-invite', {
+      body: { groupId, email }
+    });
+    if (error) throw error;
+  }
+
   async deleteItem(inviteCode: string, itemId: string): Promise<void> {
     const { error } = await this.client.rpc('delete_item_for_invite', { invite: inviteCode, item_id: itemId });
     if (error) throw error;

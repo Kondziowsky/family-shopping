@@ -34,6 +34,13 @@ import { I18nService } from '../../i18n/i18n.service';
             <button type="button" (click)="useGroup(group)">{{ i18n.t('save') }}</button>
             <button class="secondary" type="button" (click)="copy(group)">{{ i18n.t('copy') }}</button>
           </div>
+          <form class="row" (ngSubmit)="sendInvite(group)">
+            <label class="grow">{{ i18n.t('inviteEmail') }}
+              <input type="email" [name]="'inviteEmail-' + group.id" [(ngModel)]="inviteEmails[group.id]" placeholder="email@example.com">
+            </label>
+            <button type="submit">{{ i18n.t('sendInvite') }}</button>
+          </form>
+          @if (inviteSent() === group.id) { <p class="success">{{ i18n.t('inviteSent') }}</p> }
         </article>
       }
       @if (copied()) { <p class="success">{{ i18n.t('copied') }}</p> }
@@ -48,8 +55,10 @@ export class GroupPageComponent {
   readonly groups = signal<GroupSummary[]>([]);
   readonly error = signal('');
   readonly copied = signal(false);
+  readonly inviteSent = signal('');
   readonly baseUrl = computed(() => window.location.origin);
   groupName = 'Rodzinka';
+  inviteEmails: Record<string, string> = {};
 
   constructor() { void this.loadGroups(); }
 
@@ -70,4 +79,15 @@ export class GroupPageComponent {
   inviteLink(group: GroupSummary): string { return `${this.baseUrl()}/join/${group.invite_code}`; }
   useGroup(group: GroupSummary): void { this.supabase.saveInviteCode(group.invite_code); }
   async copy(group: GroupSummary): Promise<void> { await navigator.clipboard.writeText(this.inviteLink(group)); this.copied.set(true); }
+
+  async sendInvite(group: GroupSummary): Promise<void> {
+    const email = (this.inviteEmails[group.id] ?? '').trim();
+    if (!email) return;
+    try {
+      await this.supabase.sendGroupInvite(group.id, email);
+      this.inviteEmails[group.id] = '';
+      this.inviteSent.set(group.id);
+      setTimeout(() => this.inviteSent.set(''), 3000);
+    } catch (err) { this.error.set(err instanceof Error ? err.message : this.i18n.t('error')); }
+  }
 }

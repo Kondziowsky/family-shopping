@@ -37,7 +37,10 @@ const dictionaries: Record<Lang, Dict> = {
     currentUser: 'Zalogowany użytkownik',
     guest: 'Tryb gościa',
     enableNotifications: 'Włącz powiadomienia',
-    listChanged: 'Lista zakupów została zmieniona'
+    listChanged: 'Lista zakupów została zmieniona',
+    inviteEmail: 'Zaproś przez e-mail',
+    sendInvite: 'Wyślij zaproszenie',
+    inviteSent: 'Zaproszenie wysłane!'
   },
   en: {
     appTitle: 'Family Shopping',
@@ -70,7 +73,10 @@ const dictionaries: Record<Lang, Dict> = {
     currentUser: 'Current user',
     guest: 'Guest mode',
     enableNotifications: 'Enable notifications',
-    listChanged: 'Shopping list changed'
+    listChanged: 'Shopping list changed',
+    inviteEmail: 'Invite by email',
+    sendInvite: 'Send invite',
+    inviteSent: 'Invite sent!'
   }
 };
 
