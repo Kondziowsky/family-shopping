@@ -26,6 +26,8 @@ const dictionaries: Record<Lang, Dict> = {
     note: 'Notatka',
     save: 'Zapisz',
     delete: 'Usuń',
+    check: 'Oznacz jako kupione',
+    uncheck: 'Cofnij oznaczenie',
     done: 'Kupione',
     emptyList: 'Lista jest pusta.',
     joinInfo: 'Dołączono do grupy przez link zaproszeniowy.',
@@ -44,7 +46,6 @@ const dictionaries: Record<Lang, Dict> = {
     yourGroups: 'Twoje grupy',
     createNewGroup: 'Utwórz nową grupę',
     shareInvite: 'Udostępnij link lub wyślij e-mail z zaproszeniem',
-    switchGroup: 'Przełącz grupę'
   },
   en: {
     appTitle: 'Family Shopping',
@@ -66,6 +67,8 @@ const dictionaries: Record<Lang, Dict> = {
     note: 'Note',
     save: 'Save',
     delete: 'Delete',
+    check: 'Mark as bought',
+    uncheck: 'Unmark',
     done: 'Done',
     emptyList: 'The list is empty.',
     joinInfo: 'Joined the group via invite link.',
@@ -84,7 +87,6 @@ const dictionaries: Record<Lang, Dict> = {
     yourGroups: 'Your groups',
     createNewGroup: 'Create new group',
     shareInvite: 'Share the link or send an email invitation',
-    switchGroup: 'Switch group'
   }
 };
 

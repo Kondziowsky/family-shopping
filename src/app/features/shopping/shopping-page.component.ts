@@ -11,12 +11,11 @@ import { I18nService } from '../../i18n/i18n.service';
   standalone: true,
   imports: [FormsModule, RouterLink],
   template: `
-    <section class="stack">
+    <section class="grid gap-4">
 
       @if (supabase.user() && groups().length > 1) {
         <div class="card">
-          <p class="switcher-label">{{ i18n.t('switchGroup') }}</p>
-          <div class="tabs">
+          <div class="flex flex-wrap gap-2">
             @for (g of groups(); track g.id) {
               <button type="button" class="tab" [class.active]="g.invite_code === inviteCode()" (click)="switchGroup(g)">
                 {{ g.name }}
@@ -26,72 +25,77 @@ import { I18nService } from '../../i18n/i18n.service';
         </div>
       }
 
-      <div class="card stack">
-        <div class="row">
-          <div>
-            <h1>{{ i18n.t('list') }}</h1>
-            @if (group()) { <p class="muted">{{ group()?.name }}</p> }
+      <div class="card grid gap-4">
+        <div class="flex items-start gap-2">
+          <div class="flex-1">
+            <h1 class="text-base font-bold text-slate-900 m-0">{{ i18n.t('list') }}</h1>
+            @if (group()) { <p class="text-slate-500 text-sm m-0">{{ group()?.name }}</p> }
           </div>
-          <span class="spacer"></span>
-          <button class="secondary" type="button" (click)="load()">{{ i18n.t('refresh') }}</button>
           @if (notifications.supported && notifications.permission() !== 'granted') {
-            <button class="secondary" type="button" (click)="notifications.requestPermission()">{{ i18n.t('enableNotifications') }}</button>
+            <button class="btn btn-secondary btn-sm text-xs" type="button" (click)="notifications.requestPermission()">
+              {{ i18n.t('enableNotifications') }}
+            </button>
           }
+          <button class="btn btn-secondary btn-icon btn-sm" type="button" (click)="load()" [title]="i18n.t('refresh')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+          </button>
         </div>
 
         @if (!inviteCode()) {
-          <p class="muted">{{ i18n.t('noGroup') }}</p>
-          <a routerLink="/group">{{ i18n.t('goToGroup') }}</a>
+          <p class="text-slate-500 text-sm">{{ i18n.t('noGroup') }}</p>
+          <a routerLink="/group" class="text-blue-600 font-semibold text-sm hover:underline">{{ i18n.t('goToGroup') }}</a>
         } @else {
-          <form class="stack" (ngSubmit)="add()">
-            <div class="row">
-              <label class="grow">{{ i18n.t('name') }}
-                <input name="name" required [(ngModel)]="newName" autocomplete="off">
+          <form class="grid gap-3" (ngSubmit)="add()">
+            <div class="flex flex-wrap gap-3">
+              <label class="flex-1 min-w-[160px]">{{ i18n.t('name') }}
+                <input name="name" required [(ngModel)]="newName" autocomplete="off" class="field mt-1">
               </label>
-              <label class="qty">{{ i18n.t('quantity') }}
-                <input name="quantity" [(ngModel)]="newQuantity" placeholder="2 szt.">
+              <label class="w-28">{{ i18n.t('quantity') }}
+                <input name="quantity" [(ngModel)]="newQuantity" placeholder="2 szt." class="field mt-1">
               </label>
             </div>
             <label>{{ i18n.t('note') }}
-              <textarea name="note" rows="2" [(ngModel)]="newNote"></textarea>
+              <textarea name="note" rows="2" [(ngModel)]="newNote" class="field mt-1"></textarea>
             </label>
-            <button type="submit">{{ i18n.t('addItem') }}</button>
+            <button type="submit" class="btn btn-primary w-full sm:w-auto sm:justify-self-start">{{ i18n.t('addItem') }}</button>
           </form>
         }
       </div>
 
-      @if (error()) { <p class="error">{{ error() }}</p> }
+      @if (error()) { <p class="text-red-700 text-sm">{{ error() }}</p> }
 
       @if (items().length === 0 && inviteCode()) {
-        <p class="card muted">{{ i18n.t('emptyList') }}</p>
+        <p class="card text-slate-400 text-sm m-0">{{ i18n.t('emptyList') }}</p>
       }
 
       @for (item of items(); track item.id) {
-        <article class="card item">
-          <input type="checkbox" [checked]="item.is_done" (change)="toggle(item)">
-          <div class="content" [class.item-done]="item.is_done">
-            <strong>{{ item.name }}</strong>
-            @if (item.quantity) { <span class="pill">{{ item.quantity }}</span> }
-            @if (item.note) { <p class="muted">{{ item.note }}</p> }
+        <article class="card grid grid-cols-[auto_1fr_auto] gap-3 items-center transition-colors"
+                 [class.done-card]="item.is_done">
+          <button type="button" class="check-btn" [class.checked]="item.is_done" (click)="toggle(item)"
+                  [attr.aria-label]="item.is_done ? i18n.t('uncheck') : i18n.t('check')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </button>
+          <div class="grid gap-1 min-w-0" [class.opacity-40]="item.is_done" [class.line-through]="item.is_done">
+            <strong class="text-slate-900 truncate leading-snug">{{ item.name }}</strong>
+            @if (item.quantity) { <span class="pill self-start">{{ item.quantity }}</span> }
+            @if (item.note) { <p class="text-slate-500 text-sm m-0 leading-snug">{{ item.note }}</p> }
           </div>
-          <button class="danger" type="button" (click)="remove(item)">{{ i18n.t('delete') }}</button>
+          <button type="button" class="trash-btn" (click)="remove(item)" [attr.aria-label]="i18n.t('delete')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+            </svg>
+          </button>
         </article>
       }
     </section>
-  `,
-  styles: [`
-    h1 { margin: 0; }
-    .grow { flex: 1 1 260px; }
-    .qty { width: 150px; }
-    .item { display:grid; grid-template-columns:auto 1fr auto; gap: .75rem; align-items:center; }
-    .item input[type=checkbox] { width: 24px; height: 24px; }
-    .content { display:grid; gap:.25rem; }
-    .pill { display:inline-block; width:max-content; background:#e0f2fe; color:#075985; border-radius:999px; padding:.15rem .5rem; font-size:.85rem; font-weight:700; }
-    .switcher-label { margin: 0 0 .6rem; font-weight: 700; font-size: .8rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
-    .tabs { display: flex; gap: .5rem; flex-wrap: wrap; }
-    .tab { background: #e2e8f0; color: #334155; padding: .45rem 1rem; border-radius: 999px; font-size: .9rem; font-weight: 700; transition: background .15s; }
-    .tab.active { background: #2563eb; color: white; }
-  `]
+  `
 })
 export class ShoppingPageComponent {
   readonly inviteCodeFromRoute = input<string | undefined>(undefined, { alias: 'inviteCode' });

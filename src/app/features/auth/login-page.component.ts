@@ -8,22 +8,24 @@ import { SupabaseService } from '../../core/supabase.service';
   standalone: true,
   imports: [FormsModule],
   template: `
-    <section class="card stack">
-      <h1>{{ i18n.t('login') }}</h1>
-      @if (supabase.user(); as user) {
-        <p><strong>{{ i18n.t('currentUser') }}:</strong> {{ user.email }}</p>
-        <button type="button" class="secondary" (click)="supabase.signOut()">{{ i18n.t('signOut') }}</button>
-      } @else {
-        <form class="stack" (ngSubmit)="send()">
-          <label>{{ i18n.t('email') }}
-            <input name="email" type="email" required [(ngModel)]="email" placeholder="kp.softdev@gmail.com">
-          </label>
-          <button type="submit" [disabled]="loading()">{{ i18n.t('sendMagicLink') }}</button>
-        </form>
-      }
-      @if (message()) { <p class="success">{{ message() }}</p> }
-      @if (error()) { <p class="error">{{ error() }}</p> }
-    </section>
+    <div class="max-w-sm mx-auto">
+      <section class="card grid gap-4">
+        <h1 class="text-xl font-bold text-slate-900">{{ i18n.t('login') }}</h1>
+        @if (supabase.user(); as user) {
+          <p class="text-slate-700 text-sm"><strong>{{ i18n.t('currentUser') }}:</strong> {{ user.email }}</p>
+          <button type="button" class="btn btn-secondary" (click)="supabase.signOut()">{{ i18n.t('signOut') }}</button>
+        } @else {
+          <form class="grid gap-4" (ngSubmit)="send()">
+            <label>{{ i18n.t('email') }}
+              <input name="email" type="email" required [(ngModel)]="email" placeholder="email@example.com" class="field">
+            </label>
+            <button type="submit" class="btn btn-primary" [disabled]="loading()">{{ i18n.t('sendMagicLink') }}</button>
+          </form>
+        }
+        @if (message()) { <p class="text-green-700 text-sm font-medium">{{ message() }}</p> }
+        @if (error()) { <p class="text-red-700 text-sm">{{ error() }}</p> }
+      </section>
+    </div>
   `
 })
 export class LoginPageComponent {

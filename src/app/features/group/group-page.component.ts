@@ -10,86 +10,98 @@ import { I18nService } from '../../i18n/i18n.service';
   standalone: true,
   imports: [FormsModule, RouterLink],
   template: `
-    <section class="stack">
+    <section class="grid gap-4">
 
       @if (!supabase.user()) {
-        <div class="card stack">
-          <h1>{{ i18n.t('group') }}</h1>
-          <p class="muted">{{ i18n.t('guest') }}. <a routerLink="/login">{{ i18n.t('goToLogin') }}</a></p>
+        <div class="card grid gap-3">
+          <h1 class="text-xl font-bold text-slate-900">{{ i18n.t('group') }}</h1>
+          <p class="text-slate-500 text-sm">{{ i18n.t('guest') }}.
+            <a routerLink="/login" class="text-blue-600 font-semibold hover:underline">{{ i18n.t('goToLogin') }}</a>
+          </p>
         </div>
       } @else {
-        <div class="card stack">
-          <div class="section-header">
-            <div>
-              <h1>{{ i18n.t('createNewGroup') }}</h1>
-              <p class="muted">{{ i18n.t('groupName') }}</p>
-            </div>
+        <div class="card grid gap-4">
+          <div>
+            <h1 class="text-xl font-bold text-slate-900">{{ i18n.t('createNewGroup') }}</h1>
+            <p class="text-slate-500 text-sm mt-0.5">{{ i18n.t('groupName') }}</p>
           </div>
-          <form class="row" (ngSubmit)="createGroup()">
-            <label class="grow">
-              <input name="groupName" required [(ngModel)]="groupName" placeholder="Rodzinka">
+          <form class="flex flex-wrap gap-3" (ngSubmit)="createGroup()">
+            <label class="flex-1 min-w-0 gap-0">
+              <input name="groupName" required [(ngModel)]="groupName" placeholder="Rodzinka" class="field">
             </label>
-            <button type="submit">{{ i18n.t('createGroup') }}</button>
+            <button type="submit" class="btn btn-primary self-end">{{ i18n.t('createGroup') }}</button>
           </form>
         </div>
 
         @if (groups().length > 0) {
-          <div class="section-label row">
-            <span>{{ i18n.t('yourGroups') }}</span>
-            <span class="spacer"></span>
-            <button class="secondary sm" type="button" (click)="loadGroups()">{{ i18n.t('refresh') }}</button>
+          <div class="flex items-center gap-3 px-1">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest flex-1">{{ i18n.t('yourGroups') }}</span>
+            <button class="btn btn-secondary btn-sm" type="button" (click)="loadGroups()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+            </button>
           </div>
         }
 
         @for (group of groups(); track group.id) {
-          <article class="card stack">
-            <div class="group-title row">
-              <span class="group-icon">🛒</span>
-              <h2>{{ group.name }}</h2>
-              <span class="spacer"></span>
-              <button class="sm" type="button" (click)="useGroup(group)">{{ i18n.t('save') }}</button>
+          <article class="card grid gap-0 overflow-hidden p-0">
+
+            <!-- Group header -->
+            <div class="flex items-center gap-3 px-4 py-3">
+              <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+              </div>
+              <h2 class="text-base font-bold text-slate-900 flex-1 m-0 truncate">{{ group.name }}</h2>
+              <button class="btn btn-primary btn-sm" type="button" (click)="useGroup(group)">{{ i18n.t('save') }}</button>
             </div>
 
-            <div class="divider"></div>
+            <hr class="border-slate-100 m-0">
 
-            <div class="stack sm-stack">
-              <p class="muted hint">{{ i18n.t('shareInvite') }}</p>
-              <label>{{ i18n.t('inviteLink') }}
-                <div class="row">
-                  <input class="grow" readonly [value]="inviteLink(group)">
-                  <button class="secondary sm" type="button" (click)="copy(group)">{{ i18n.t('copy') }}</button>
+            <!-- Invite section -->
+            <div class="grid gap-4 px-4 py-4 bg-slate-50/60">
+              <p class="text-slate-400 text-xs m-0 font-medium uppercase tracking-wide">{{ i18n.t('shareInvite') }}</p>
+
+              <label class="gap-1">{{ i18n.t('inviteLink') }}
+                <div class="flex gap-2 mt-1">
+                  <input class="field flex-1 min-w-0 text-sm font-mono" readonly [value]="inviteLink(group)">
+                  <button class="btn btn-secondary btn-sm shrink-0" type="button" (click)="copy(group)">{{ i18n.t('copy') }}</button>
                 </div>
               </label>
-              <form class="row" (ngSubmit)="sendInvite(group)">
-                <label class="grow">{{ i18n.t('inviteEmail') }}
-                  <input type="email" [name]="'inviteEmail-' + group.id" [(ngModel)]="inviteEmails[group.id]" placeholder="email@example.com">
+
+              <form class="grid gap-2" (ngSubmit)="sendInvite(group)">
+                <label class="gap-1">{{ i18n.t('inviteEmail') }}
+                  <div class="flex gap-2 mt-1">
+                    <input type="email" [name]="'inviteEmail-' + group.id" [(ngModel)]="inviteEmails[group.id]"
+                      placeholder="email@example.com" class="field flex-1 min-w-0 text-sm">
+                    <button class="btn btn-primary btn-sm shrink-0" type="submit">{{ i18n.t('sendInvite') }}</button>
+                  </div>
                 </label>
-                <button class="sm" type="submit">{{ i18n.t('sendInvite') }}</button>
               </form>
-              @if (inviteSent() === group.id) { <p class="success">✓ {{ i18n.t('inviteSent') }}</p> }
+
+              @if (inviteSent() === group.id) {
+                <p class="text-green-700 text-sm font-semibold m-0 flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  {{ i18n.t('inviteSent') }}
+                </p>
+              }
             </div>
           </article>
         }
       }
 
-      @if (copied()) { <p class="success">✓ {{ i18n.t('copied') }}</p> }
-      @if (error()) { <p class="error">{{ error() }}</p> }
+      @if (copied()) { <p class="text-green-700 text-sm font-semibold">✓ {{ i18n.t('copied') }}</p> }
+      @if (error()) { <p class="text-red-700 text-sm">{{ error() }}</p> }
     </section>
-  `,
-  styles: [`
-    h1 { margin: 0; font-size: 1.25rem; }
-    h2 { margin: 0; font-size: 1.1rem; }
-    .grow { flex: 1 1 200px; }
-    .hint { margin: 0; font-size: .9rem; }
-    .section-label { font-weight: 700; color: #64748b; font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; padding: 0 .25rem; }
-    .section-header { display: flex; align-items: flex-start; gap: 1rem; }
-    .group-title { gap: .6rem; }
-    .group-icon { font-size: 1.4rem; line-height: 1; }
-    .divider { border-top: 1px solid #e2e8f0; margin: 0 -.25rem; }
-    .sm-stack { gap: .75rem; }
-    .sm { padding: .5rem .85rem; font-size: .9rem; }
-    input.grow { flex: 1 1 200px; width: auto; }
-  `]
+  `
 })
 export class GroupPageComponent {
   readonly supabase = inject(SupabaseService);

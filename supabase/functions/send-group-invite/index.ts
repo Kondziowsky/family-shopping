@@ -64,21 +64,17 @@ Deno.serve(async (req) => {
       return json({ error: 'You are not a member of this group' }, 403);
     }
 
-    const token = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: group, error: groupError } = await adminClient
+      .from('groups')
+      .select('invite_code, name')
+      .eq('id', groupId)
+      .maybeSingle();
 
-    const { error: inviteError } = await adminClient.from('group_invites').insert({
-      group_id: groupId,
-      email,
-      token,
-      expires_at: expiresAt,
-    });
-
-    if (inviteError) {
-      return json({ error: inviteError.message }, 500);
+    if (groupError || !group) {
+      return json({ error: 'Group not found' }, 404);
     }
 
-    const inviteUrl = `${appUrl}/invite/${token}`;
+    const inviteUrl = `${appUrl}/join/${group.invite_code}`;
 
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -92,9 +88,9 @@ Deno.serve(async (req) => {
         subject: 'Zaproszenie do Family Shopping',
         html: `
           <p>Cześć!</p>
-          <p>Masz zaproszenie do wspólnej listy zakupów.</p>
+          <p>Masz zaproszenie do wspólnej listy zakupów: <strong>${group.name}</strong>.</p>
           <p><a href="${inviteUrl}">Kliknij tutaj, aby dołączyć</a></p>
-          <p>Link jest ważny 7 dni.</p>
+          <p>Lub skopiuj ten link: ${inviteUrl}</p>
         `,
       }),
     });

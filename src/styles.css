@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    @apply bg-slate-50 text-slate-900;
+  }
+  button, input, textarea, select {
+    font: inherit;
+  }
+  label {
+    @apply grid gap-1.5 font-semibold text-sm text-slate-700;
+  }
+}
+
+@layer components {
+  /* ── Buttons ── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 cursor-pointer border-0 rounded-xl
+           px-4 py-2.5 font-bold transition-colors select-none;
+  }
+  .btn:disabled { @apply opacity-60 cursor-not-allowed; }
+  .btn-primary   { @apply bg-blue-600 text-white hover:bg-blue-700; }
+  .btn-secondary { @apply bg-slate-100 text-slate-800 hover:bg-slate-200; }
+  .btn-danger    { @apply bg-red-600 text-white hover:bg-red-700; }
+  .btn-sm        { @apply px-3 py-1.5 text-sm rounded-lg; }
+  .btn-icon      { @apply p-2; }
+
+  /* ── Card ── */
+  .card {
+    @apply bg-white border border-slate-200 rounded-2xl p-4 shadow-sm;
+  }
+
+  /* ── Form field ── */
+  .field {
+    @apply w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-900;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  }
+
+  /* ── Group tabs ── */
+  .tab {
+    @apply inline-flex items-center justify-center cursor-pointer border-0 rounded-full
+           px-4 py-1.5 text-sm font-bold bg-slate-100 text-slate-800 transition-colors hover:bg-slate-200;
+  }
+  .tab.active { @apply bg-blue-600 text-white hover:bg-blue-700; }
+
+  /* ── Custom checkbox button ── */
+  .check-btn {
+    @apply shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all
+           border-2 border-slate-300 text-transparent cursor-pointer bg-transparent;
+  }
+  .check-btn.checked {
+    @apply bg-blue-600 border-blue-600 text-white;
+  }
+  .check-btn:hover:not(.checked) { @apply border-blue-400; }
+
+  /* ── Trash icon button ── */
+  .trash-btn {
+    @apply shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border-0
+           text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent;
+  }
+
+  /* ── Done item card tint ── */
+  .done-card { @apply bg-slate-50; }
+
+  /* ── Quantity pill ── */
+  .pill {
+    @apply inline-block w-max bg-sky-100 text-sky-800 rounded-full px-2 py-0.5 text-xs font-bold;
+  }
+
+  /* ── Nav link ── */
+  .nav-link {
+    @apply text-slate-500 hover:text-blue-600 transition-colors flex items-center;
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    @apply text-xs font-bold text-slate-400 uppercase tracking-widest;
+  }
+}
