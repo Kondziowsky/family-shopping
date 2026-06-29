@@ -16,11 +16,11 @@
             "outputPath": "dist/family-shopping",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["zone.js"],
+            "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [{"glob": "**/*", "input": "src/assets"}, "src/manifest.webmanifest"],
-            "styles": ["node_modules/@angular/cdk/drag-drop-prebuilt.css", "src/styles.css"]
+            "styles": ["src/styles.css"]
           },
           "configurations": {
             "production": {"budgets": [{"type": "initial", "maximumWarning": "500kB", "maximumError": "1MB"}], "outputHashing": "all"},
@@ -29,7 +29,7 @@
           "defaultConfiguration": "production"
         },
         "serve": {"builder": "@angular-devkit/build-angular:dev-server", "configurations": {"production": {"buildTarget": "family-shopping:build:production"}, "development": {"buildTarget": "family-shopping:build:development"}}, "defaultConfiguration": "development"},
-        "test": {"builder": "@angular-devkit/build-angular:karma", "options": {"polyfills": ["zone.js", "zone.js/testing"], "tsConfig": "tsconfig.spec.json", "inlineStyleLanguage": "scss", "assets": [{"glob": "**/*", "input": "src/assets"}], "styles": ["src/styles.css"]}}
+        "test": {"builder": "@angular-devkit/build-angular:karma", "options": {"polyfills": [], "tsConfig": "tsconfig.spec.json", "inlineStyleLanguage": "scss", "assets": [{"glob": "**/*", "input": "src/assets"}], "styles": ["src/styles.css"]}}
       }
     }
   }

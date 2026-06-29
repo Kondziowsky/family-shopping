@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../i18n/i18n.service';
 import { SupabaseService } from '../../core/supabase.service';
@@ -6,6 +6,7 @@ import { SupabaseService } from '../../core/supabase.service';
 @Component({
   selector: 'app-login-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
     <div class="max-w-sm mx-auto">

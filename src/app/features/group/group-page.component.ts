@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { GroupSummary } from '../../core/types';
@@ -8,6 +8,7 @@ import { I18nService } from '../../i18n/i18n.service';
 @Component({
   selector: 'app-group-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, RouterLink],
   template: `
     <section class="grid gap-4">

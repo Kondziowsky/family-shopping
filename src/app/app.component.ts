@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { I18nService } from './i18n/i18n.service';
 import { SupabaseService } from './core/supabase.service';
@@ -6,6 +6,7 @@ import { SupabaseService } from './core/supabase.service';
 @Component({
   selector: 'app-root',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet, RouterLink],
   template: `
     <header class="flex items-center gap-3 px-4 py-3 bg-white border-b border-slate-200 sticky top-0 z-10 flex-wrap sm:flex-nowrap">
