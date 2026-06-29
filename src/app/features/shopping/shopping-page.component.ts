@@ -1,6 +1,7 @@
 import { Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { CdkDropList, CdkDrag, CdkDragPlaceholder, moveItemInArray, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { ShoppingItem, GroupSummary } from '../../core/types';
 import { SupabaseService } from '../../core/supabase.service';
 import { NotificationService } from '../../core/notification.service';
@@ -9,9 +10,9 @@ import { I18nService } from '../../i18n/i18n.service';
 @Component({
   selector: 'app-shopping-page',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, CdkDropList, CdkDrag, CdkDragPlaceholder],
   template: `
-    <section class="grid gap-4">
+    <section class="grid gap-3">
 
       @if (supabase.user() && groups().length > 1) {
         <div class="card">
@@ -29,7 +30,6 @@ import { I18nService } from '../../i18n/i18n.service';
         <div class="flex items-start gap-2">
           <div class="flex-1">
             <h1 class="text-base font-bold text-slate-900 m-0">{{ i18n.t('list') }}</h1>
-            @if (group()) { <p class="text-slate-500 text-sm m-0">{{ group()?.name }}</p> }
           </div>
           @if (notifications.supported && notifications.permission() !== 'granted') {
             <button class="btn btn-secondary btn-sm text-xs" type="button" (click)="notifications.requestPermission()">
@@ -70,30 +70,47 @@ import { I18nService } from '../../i18n/i18n.service';
         <p class="card text-slate-400 text-sm m-0">{{ i18n.t('emptyList') }}</p>
       }
 
-      @for (item of items(); track item.id) {
-        <article class="card grid grid-cols-[auto_1fr_auto] gap-3 items-center transition-colors"
-                 [class.done-card]="item.is_done">
-          <button type="button" class="check-btn" [class.checked]="item.is_done" (click)="toggle(item)"
-                  [attr.aria-label]="item.is_done ? i18n.t('uncheck') : i18n.t('check')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </button>
-          <div class="grid gap-1 min-w-0" [class.opacity-40]="item.is_done" [class.line-through]="item.is_done">
-            <strong class="text-slate-900 truncate leading-snug">{{ item.name }}</strong>
-            @if (item.quantity) { <span class="pill self-start">{{ item.quantity }}</span> }
-            @if (item.note) { <p class="text-slate-500 text-sm m-0 leading-snug">{{ item.note }}</p> }
-          </div>
-          <button type="button" class="trash-btn" (click)="remove(item)" [attr.aria-label]="i18n.t('delete')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-              <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
-            </svg>
-          </button>
-        </article>
-      }
+      <div cdkDropList class="grid gap-1.5" (cdkDropListDropped)="drop($event)">
+        @for (item of items(); track item.id) {
+          <article cdkDrag
+                   class="card-compact grid grid-cols-[auto_1fr_auto] gap-2 items-center transition-colors cursor-grab active:cursor-grabbing"
+                   [class.done-card]="item.is_done">
+
+            <!-- check — stops drag from starting here -->
+            <button type="button" class="check-btn" [class.checked]="item.is_done" (click)="toggle(item)"
+                    (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
+                    [attr.aria-label]="item.is_done ? i18n.t('uncheck') : i18n.t('check')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </button>
+
+            <!-- content (draggable area) -->
+            <div class="grid gap-0.5 min-w-0 py-0.5" [class.opacity-40]="item.is_done" [class.line-through]="item.is_done">
+              <strong class="text-slate-900 truncate text-sm leading-snug">{{ item.name }}</strong>
+              <div class="flex flex-wrap items-center gap-1.5">
+                @if (item.quantity) { <span class="pill">{{ item.quantity }}</span> }
+                @if (item.note) { <span class="text-slate-400 text-xs truncate">{{ item.note }}</span> }
+              </div>
+            </div>
+
+            <!-- delete — stops drag from starting here -->
+            <button type="button" class="trash-btn" (click)="remove(item)"
+                    (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
+                    [attr.aria-label]="i18n.t('delete')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+              </svg>
+            </button>
+
+            <!-- placeholder shown while dragging -->
+            <div *cdkDragPlaceholder class="h-10 rounded-xl bg-blue-50 border-2 border-dashed border-blue-200 col-span-3"></div>
+          </article>
+        }
+      </div>
     </section>
   `
 })
@@ -184,5 +201,12 @@ export class ShoppingPageComponent {
     if (!invite) return;
     await this.supabase.deleteItem(invite, item.id);
     await this.load();
+  }
+
+  drop(event: CdkDragDrop<ShoppingItem[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    const current = [...this.items()];
+    moveItemInArray(current, event.previousIndex, event.currentIndex);
+    this.items.set(current);
   }
 }
