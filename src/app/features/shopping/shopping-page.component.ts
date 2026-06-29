@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, 
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CdkDropList, CdkDrag, CdkDragPlaceholder, moveItemInArray, CdkDragDrop } from '@angular/cdk/drag-drop';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faArrowsRotate, faCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { ShoppingItem, GroupSummary } from '../../core/types';
 import { SupabaseService } from '../../core/supabase.service';
 import { NotificationService } from '../../core/notification.service';
@@ -11,7 +13,7 @@ import { I18nService } from '../../i18n/i18n.service';
   selector: 'app-shopping-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, CdkDropList, CdkDrag, CdkDragPlaceholder],
+  imports: [FormsModule, RouterLink, CdkDropList, CdkDrag, CdkDragPlaceholder, FaIconComponent],
   template: `
     <section class="grid gap-3">
 
@@ -38,9 +40,7 @@ import { I18nService } from '../../i18n/i18n.service';
             </button>
           }
           <button class="btn btn-secondary btn-icon btn-sm" type="button" (click)="load()" [title]="i18n.t('refresh')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-            </svg>
+            <fa-icon [icon]="faArrowsRotate" />
           </button>
         </div>
 
@@ -81,10 +81,7 @@ import { I18nService } from '../../i18n/i18n.service';
             <button type="button" class="check-btn" [class.checked]="item.is_done" (click)="toggle(item)"
                     (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
                     [attr.aria-label]="item.is_done ? i18n.t('uncheck') : i18n.t('check')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
+              <fa-icon [icon]="faCheck" />
             </button>
 
             <!-- content (draggable area) -->
@@ -100,11 +97,7 @@ import { I18nService } from '../../i18n/i18n.service';
             <button type="button" class="trash-btn" (click)="remove(item)"
                     (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
                     [attr.aria-label]="i18n.t('delete')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
-              </svg>
+              <fa-icon [icon]="faTrash" />
             </button>
 
             <!-- placeholder shown while dragging -->
@@ -121,6 +114,10 @@ export class ShoppingPageComponent {
   readonly i18n = inject(I18nService);
   readonly notifications = inject(NotificationService);
   readonly destroyRef = inject(DestroyRef);
+
+  readonly faArrowsRotate = faArrowsRotate;
+  readonly faCheck = faCheck;
+  readonly faTrash = faTrash;
 
   readonly inviteCode = signal<string | null>(this.supabase.savedInviteCode);
   readonly group = signal<GroupSummary | null>(null);

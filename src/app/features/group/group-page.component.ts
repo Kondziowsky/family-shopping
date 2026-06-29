@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faArrowsRotate, faCartShopping, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { GroupSummary } from '../../core/types';
 import { SupabaseService } from '../../core/supabase.service';
 import { I18nService } from '../../i18n/i18n.service';
@@ -9,7 +11,7 @@ import { I18nService } from '../../i18n/i18n.service';
   selector: 'app-group-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, FaIconComponent],
   template: `
     <section class="grid gap-4">
 
@@ -38,9 +40,7 @@ import { I18nService } from '../../i18n/i18n.service';
           <div class="flex items-center gap-3 px-1">
             <span class="text-xs font-bold text-slate-400 uppercase tracking-widest flex-1">{{ i18n.t('yourGroups') }}</span>
             <button class="btn btn-secondary btn-sm" type="button" (click)="loadGroups()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-              </svg>
+              <fa-icon [icon]="faArrowsRotate" />
             </button>
           </div>
         }
@@ -50,13 +50,8 @@ import { I18nService } from '../../i18n/i18n.service';
 
             <!-- Group header -->
             <div class="flex items-center gap-3 px-4 py-3">
-              <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                     stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                  <line x1="3" y1="6" x2="21" y2="6"/>
-                  <path d="M16 10a4 4 0 0 1-8 0"/>
-                </svg>
+              <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 text-blue-600">
+                <fa-icon [icon]="faCartShopping" class="text-lg" />
               </div>
               <h2 class="text-base font-bold text-slate-900 flex-1 m-0 truncate">{{ group.name }}</h2>
               <button class="btn btn-primary btn-sm" type="button" (click)="useGroup(group)">{{ i18n.t('save') }}</button>
@@ -87,10 +82,7 @@ import { I18nService } from '../../i18n/i18n.service';
 
               @if (inviteSent() === group.id) {
                 <p class="text-green-700 text-sm font-semibold m-0 flex items-center gap-1.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
+                  <fa-icon [icon]="faCheck" />
                   {{ i18n.t('inviteSent') }}
                 </p>
               }
@@ -114,6 +106,10 @@ export class GroupPageComponent {
   readonly baseUrl = computed(() => window.location.origin);
   groupName = 'Rodzinka';
   inviteEmails: Record<string, string> = {};
+
+  readonly faArrowsRotate = faArrowsRotate;
+  readonly faCartShopping = faCartShopping;
+  readonly faCheck = faCheck;
 
   constructor() { void this.loadGroups(); }
 

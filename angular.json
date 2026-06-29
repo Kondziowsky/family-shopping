@@ -19,7 +19,7 @@
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": [{"glob": "**/*", "input": "src/assets"}, "src/manifest.webmanifest"],
+            "assets": [{"glob": "**/*", "input": "src/assets", "output": "assets"}, "src/manifest.webmanifest"],
             "styles": ["src/styles.css"]
           },
           "configurations": {
