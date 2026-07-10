@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, 
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CdkAccordionModule } from '@angular/cdk/accordion';
-import { CdkDropList, CdkDrag, CdkDragPlaceholder, moveItemInArray, CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDropList, CdkDrag, CdkDragHandle, moveItemInArray, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faArrowsRotate, faCheck, faChevronDown, faChevronUp, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faCheck, faChevronDown, faChevronUp, faTrash, faArrowsUpDown } from '@fortawesome/free-solid-svg-icons';
 import { ShoppingItem, GroupSummary } from '../../core/types';
 import { SupabaseService } from '../../core/supabase.service';
 import { NotificationService } from '../../core/notification.service';
@@ -20,7 +20,7 @@ import { I18nService } from '../../i18n/i18n.service';
     CdkAccordionModule,
     CdkDropList,
     CdkDrag,
-    CdkDragPlaceholder,
+    CdkDragHandle,
     FaIconComponent,
   ],
   template: `
@@ -42,10 +42,10 @@ import { I18nService } from '../../i18n/i18n.service';
         <div
           cdkAccordionItem
           #addItemAccordion="cdkAccordionItem"
-          class="card grid gap-4"
+          class="card grid gap-3"
           [expanded]="true"
         >
-          <div class="flex items-start gap-2">
+          <div class="flex items-center gap-2">
             <div class="flex-1">
               <h1 class="text-base font-bold text-slate-900 m-0">{{ i18n.t('list') }}</h1>
             </div>
@@ -100,16 +100,24 @@ import { I18nService } from '../../i18n/i18n.service';
         <p class="card text-slate-400 text-sm m-0">{{ i18n.t('emptyList') }}</p>
       }
 
-      <div cdkDropList class="grid gap-1.5" (cdkDropListDropped)="drop($event)">
+      <div
+        cdkDropList
+        cdkDropListOrientation="vertical"
+        class="grid gap-1.5"
+        (cdkDropListDropped)="drop($event)"
+      >
         @for (item of items(); track item.id) {
-          <article cdkDrag
-                   class="card-compact grid grid-cols-[auto_1fr_auto] gap-2 items-center transition-colors cursor-grab active:cursor-grabbing"
-                   [class.done-card]="item.is_done">
+          <article
+            cdkDrag
+            cdkDragLockAxis="y"
+            class="card-compact grid grid-cols-[auto_1fr_auto_auto] gap-2 items-center transition-colors"
+            [class.done-card]="item.is_done"
+          >
 
-            <button type="button" class="check-btn" [class.checked]="item.is_done" (click)="toggle(item)"
+            <button type="button" class="trash-btn" (click)="remove(item)"
                     (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
-                    [attr.aria-label]="item.is_done ? i18n.t('uncheck') : i18n.t('check')">
-              <fa-icon [icon]="faCheck" />
+                    [attr.aria-label]="i18n.t('delete')">
+              <fa-icon [icon]="faTrash" />
             </button>
 
             <div class="grid gap-0.5 min-w-0 py-0.5" [class.opacity-40]="item.is_done" [class.line-through]="item.is_done">
@@ -120,13 +128,20 @@ import { I18nService } from '../../i18n/i18n.service';
               </div>
             </div>
 
-            <button type="button" class="trash-btn" (click)="remove(item)"
+            <button type="button" class="check-btn" [class.checked]="item.is_done" (click)="toggle(item)"
                     (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
-                    [attr.aria-label]="i18n.t('delete')">
-              <fa-icon [icon]="faTrash" />
+                    [attr.aria-label]="item.is_done ? i18n.t('uncheck') : i18n.t('check')">
+              <fa-icon [icon]="faCheck" />
             </button>
 
-            <div *cdkDragPlaceholder class="h-10 rounded-xl bg-blue-50 border-2 border-dashed border-blue-200 col-span-3"></div>
+            <button
+              cdkDragHandle
+              type="button"
+              class="btn btn-secondary btn-icon btn-sm cursor-grab touch-none active:cursor-grabbing"
+              aria-label="Move item"
+            >
+              <fa-icon [icon]="faArrowsUpDown" />
+            </button>
           </article>
         }
       </div>
@@ -144,6 +159,7 @@ export class ShoppingPageComponent {
   readonly faChevronDown = faChevronDown;
   readonly faChevronUp = faChevronUp;
   readonly faCheck = faCheck;
+  readonly faArrowsUpDown = faArrowsUpDown;
   readonly faTrash = faTrash;
 
   readonly inviteCode = signal<string | null>(this.supabase.savedInviteCode);
