@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faListUl, faUsers, faRightToBracket, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faListUl, faUsers, faRightToBracket, faRightFromBracket, faRotate } from '@fortawesome/free-solid-svg-icons';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { filter } from 'rxjs/operators';
 import { I18nService } from './i18n/i18n.service';
 import { SupabaseService } from './core/supabase.service';
 
@@ -12,6 +14,19 @@ import { SupabaseService } from './core/supabase.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet, RouterLink, FaIconComponent, NgOptimizedImage],
   template: `
+    @if (updateReady()) {
+      <div class="flex items-center justify-between gap-3 bg-blue-600 px-4 py-2 text-sm text-white">
+        <span>{{ i18n.t('updateAvailable') }}</span>
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-md bg-white/15 px-3 py-1 font-medium hover:bg-white/25"
+          (click)="reload()"
+        >
+          <fa-icon [icon]="faRotate" />
+          {{ i18n.t('refresh') }}
+        </button>
+      </div>
+    }
     <header class="sticky top-0 z-10 border-b border-slate-200 bg-white px-3 py-3">
       <nav class="relative flex items-center justify-between">
 
@@ -85,8 +100,26 @@ import { SupabaseService } from './core/supabase.service';
 export class AppComponent {
   readonly i18n = inject(I18nService);
   readonly supabase = inject(SupabaseService);
+  private readonly swUpdate = inject(SwUpdate);
   readonly faListUl = faListUl;
   readonly faUsers = faUsers;
   readonly faRightToBracket = faRightToBracket;
   readonly faRightFromBracket = faRightFromBracket;
+  readonly faRotate = faRotate;
+  readonly updateReady = signal(false);
+
+  constructor() {
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.versionUpdates
+        .pipe(filter((e): e is VersionReadyEvent => e.type === 'VERSION_READY'))
+        .subscribe(() => this.updateReady.set(true));
+
+      // Cached build no longer exists on the server - reload to recover.
+      this.swUpdate.unrecoverable.subscribe(() => this.reload());
+    }
+  }
+
+  reload(): void {
+    document.location.reload();
+  }
 }

@@ -5,7 +5,11 @@
   "projects": {
     "family-shopping": {
       "projectType": "application",
-      "schematics": {"@schematics/angular:component": {"style": "scss"}},
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -19,17 +23,67 @@
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": [{"glob": "**/*", "input": "src/assets", "output": "assets"}, "src/manifest.webmanifest"],
-            "styles": ["src/styles.css"]
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+              },
+              "src/manifest.webmanifest"
+            ],
+            "styles": [
+              "src/styles.css"
+            ]
           },
           "configurations": {
-            "production": {"budgets": [{"type": "initial", "maximumWarning": "500kB", "maximumError": "1MB"}], "outputHashing": "all"},
-            "development": {"optimization": false, "extractLicenses": false, "sourceMap": true}
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                }
+              ],
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
           },
           "defaultConfiguration": "production"
         },
-        "serve": {"builder": "@angular-devkit/build-angular:dev-server", "configurations": {"production": {"buildTarget": "family-shopping:build:production"}, "development": {"buildTarget": "family-shopping:build:development"}}, "defaultConfiguration": "development"},
-        "test": {"builder": "@angular-devkit/build-angular:karma", "options": {"polyfills": [], "tsConfig": "tsconfig.spec.json", "inlineStyleLanguage": "scss", "assets": [{"glob": "**/*", "input": "src/assets"}], "styles": ["src/styles.css"]}}
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "family-shopping:build:production"
+            },
+            "development": {
+              "buildTarget": "family-shopping:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [],
+            "tsConfig": "tsconfig.spec.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "src/assets"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ]
+          }
+        }
       }
     }
   }
