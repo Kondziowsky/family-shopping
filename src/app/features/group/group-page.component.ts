@@ -54,6 +54,9 @@ import { I18nService } from '../../i18n/i18n.service';
                 <fa-icon [icon]="faCartShopping" class="text-lg" />
               </div>
               <h2 class="text-base font-bold text-slate-900 flex-1 m-0 truncate">{{ group.name }}</h2>
+              @if (group.invite_code === activeInvite()) {
+                <span class="pill bg-green-100 text-green-800">{{ i18n.t('active') }}</span>
+              }
               @if (group.role === 'owner') {
                 <button class="btn btn-danger btn-sm" type="button" (click)="deleteGroup(group)">
                   <fa-icon [icon]="faTrash" />
@@ -108,6 +111,7 @@ export class GroupPageComponent {
   readonly error = signal('');
   readonly copied = signal(false);
   readonly inviteSent = signal('');
+  readonly activeInvite = signal<string | null>(this.supabase.savedInviteCode);
   readonly baseUrl = computed(() => window.location.origin);
   groupName = 'Rodzinka';
   inviteEmails: Record<string, string> = {};
@@ -134,14 +138,21 @@ export class GroupPageComponent {
   }
 
   inviteLink(group: GroupSummary): string { return `${this.baseUrl()}/join/${group.invite_code}`; }
-  useGroup(group: GroupSummary): void { this.supabase.saveInviteCode(group.invite_code); }
+  /** Creating a group switches you to it; the shopping-list tabs handle later switching. */
+  useGroup(group: GroupSummary): void {
+    this.supabase.saveInviteCode(group.invite_code);
+    this.activeInvite.set(group.invite_code);
+  }
 
   async deleteGroup(group: GroupSummary): Promise<void> {
     const message = this.i18n.t('confirmDeleteGroup').replace('{name}', group.name);
     if (!confirm(message)) return;
     try {
       await this.supabase.deleteGroup(group.id);
-      if (this.supabase.savedInviteCode === group.invite_code) this.supabase.clearInviteCode();
+      if (this.supabase.savedInviteCode === group.invite_code) {
+        this.supabase.clearInviteCode();
+        this.activeInvite.set(null);
+      }
       this.groups.set(this.groups().filter(g => g.id !== group.id));
     } catch (err) { this.error.set(err instanceof Error ? err.message : this.i18n.t('error')); }
   }
