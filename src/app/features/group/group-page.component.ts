@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faArrowsRotate, faCartShopping, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faCartShopping, faCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { GroupSummary } from '../../core/types';
 import { SupabaseService } from '../../core/supabase.service';
 import { I18nService } from '../../i18n/i18n.service';
@@ -54,7 +54,12 @@ import { I18nService } from '../../i18n/i18n.service';
                 <fa-icon [icon]="faCartShopping" class="text-lg" />
               </div>
               <h2 class="text-base font-bold text-slate-900 flex-1 m-0 truncate">{{ group.name }}</h2>
-              <button class="btn btn-primary btn-sm" type="button" (click)="useGroup(group)">{{ i18n.t('save') }}</button>
+              @if (group.role === 'owner') {
+                <button class="btn btn-danger btn-sm" type="button" (click)="deleteGroup(group)">
+                  <fa-icon [icon]="faTrash" />
+                  {{ i18n.t('delete') }}
+                </button>
+              }
             </div>
 
             <hr class="border-slate-100 m-0">
@@ -110,6 +115,7 @@ export class GroupPageComponent {
   readonly faArrowsRotate = faArrowsRotate;
   readonly faCartShopping = faCartShopping;
   readonly faCheck = faCheck;
+  readonly faTrash = faTrash;
 
   constructor() { void this.loadGroups(); }
 
@@ -129,6 +135,16 @@ export class GroupPageComponent {
 
   inviteLink(group: GroupSummary): string { return `${this.baseUrl()}/join/${group.invite_code}`; }
   useGroup(group: GroupSummary): void { this.supabase.saveInviteCode(group.invite_code); }
+
+  async deleteGroup(group: GroupSummary): Promise<void> {
+    const message = this.i18n.t('confirmDeleteGroup').replace('{name}', group.name);
+    if (!confirm(message)) return;
+    try {
+      await this.supabase.deleteGroup(group.id);
+      if (this.supabase.savedInviteCode === group.invite_code) this.supabase.clearInviteCode();
+      this.groups.set(this.groups().filter(g => g.id !== group.id));
+    } catch (err) { this.error.set(err instanceof Error ? err.message : this.i18n.t('error')); }
+  }
   async copy(group: GroupSummary): Promise<void> { await navigator.clipboard.writeText(this.inviteLink(group)); this.copied.set(true); }
 
   async sendInvite(group: GroupSummary): Promise<void> {

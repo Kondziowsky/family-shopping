@@ -65,6 +65,17 @@ export class SupabaseService {
     return (data ?? []) as GroupSummary[];
   }
 
+  async joinGroupByInvite(inviteCode: string): Promise<GroupSummary> {
+    const { data, error } = await this.client.rpc('join_group_by_invite', { invite: inviteCode });
+    if (error) throw error;
+    return data as GroupSummary;
+  }
+
+  async deleteGroup(groupId: string): Promise<void> {
+    const { error } = await this.client.rpc('delete_group', { target_group_id: groupId });
+    if (error) throw error;
+  }
+
   async getGroupByInvite(inviteCode: string): Promise<GroupSummary | null> {
     const { data, error } = await this.client.rpc('get_group_by_invite', { invite: inviteCode });
     if (error) throw error;

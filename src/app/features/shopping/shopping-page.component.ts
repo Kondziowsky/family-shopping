@@ -168,6 +168,9 @@ export class ShoppingPageComponent {
   readonly items = signal<ShoppingItem[]>([]);
   readonly error = signal('');
 
+  /** Invite codes we already sent to join_group_by_invite, to avoid repeat RPCs. */
+  private readonly joinedCodes = new Set<string>();
+
   newName = '';
   newQuantity = '';
   newNote = '';
@@ -182,8 +185,22 @@ export class ShoppingPageComponent {
       void this.load();
     });
 
+    // When a logged-in user opens an invite link we must create a real
+    // group_members row, otherwise they never appear in get_my_groups(),
+    // get no group tabs, and stay stuck on the last invite code they opened.
     effect(() => {
-      if (this.supabase.user()) void this.loadGroups();
+      const user = this.supabase.user();
+      const routeInvite = this.inviteCodeFromRoute();
+      if (!user) return;
+
+      if (routeInvite && !this.joinedCodes.has(routeInvite)) {
+        this.joinedCodes.add(routeInvite);
+        this.supabase.joinGroupByInvite(routeInvite)
+          .catch(() => this.joinedCodes.delete(routeInvite))
+          .finally(() => void this.loadGroups());
+      } else {
+        void this.loadGroups();
+      }
     });
 
     this.destroyRef.onDestroy(() => this.supabase.unsubscribeItems());

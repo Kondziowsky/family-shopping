@@ -2,6 +2,7 @@ export interface GroupSummary {
   id: string;
   name: string;
   invite_code: string;
+  role?: 'owner' | 'member';
 }
 
 export interface ShoppingItem {

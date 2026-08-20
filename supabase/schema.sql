@@ -90,16 +90,67 @@ end;
 $$;
 
 create or replace function public.get_my_groups()
-returns setof public.groups
+returns table(id uuid, name text, invite_code text, role text)
 language sql
 security definer
 set search_path = public
 as $$
-  select g.*
+  select g.id, g.name, g.invite_code, gm.role
   from public.groups g
   join public.group_members gm on gm.group_id = g.id
   where gm.user_id = auth.uid()
   order by g.created_at desc;
+$$;
+
+-- Joining an invite link creates a real membership row for the logged-in user,
+-- so they appear in get_my_groups() and can belong to many groups at once.
+create or replace function public.join_group_by_invite(invite text)
+returns public.groups
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  g public.groups;
+begin
+  if auth.uid() is null then
+    raise exception 'Login required';
+  end if;
+
+  select * into g from public.groups where invite_code = invite;
+  if g.id is null then
+    raise exception 'Invalid invite code';
+  end if;
+
+  insert into public.group_members(group_id, user_id, role)
+  values (g.id, auth.uid(), 'member')
+  on conflict (group_id, user_id) do nothing;
+
+  return g;
+end;
+$$;
+
+-- Owner-only group deletion. Cascades remove memberships and items.
+create or replace function public.delete_group(target_group_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Login required';
+  end if;
+
+  if not exists (
+    select 1 from public.groups
+    where id = target_group_id and owner_id = auth.uid()
+  ) then
+    raise exception 'Only the group owner can delete the group';
+  end if;
+
+  delete from public.groups where id = target_group_id;
+end;
 $$;
 
 -- Invite-based guest functions. Anyone with the invite code can use the group's list.
@@ -189,6 +240,8 @@ $$;
 
 grant execute on function public.create_group_for_current_user(text) to authenticated;
 grant execute on function public.get_my_groups() to authenticated;
+grant execute on function public.join_group_by_invite(text) to authenticated;
+grant execute on function public.delete_group(uuid) to authenticated;
 grant execute on function public.get_group_by_invite(text) to anon, authenticated;
 grant execute on function public.list_items_for_invite(text) to anon, authenticated;
 grant execute on function public.add_item_for_invite(text, text, text, text) to anon, authenticated;

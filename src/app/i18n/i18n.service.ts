@@ -48,6 +48,7 @@ const dictionaries: Record<Lang, Dict> = {
     yourGroups: 'Twoje grupy',
     createNewGroup: 'Utwórz nową grupę',
     shareInvite: 'Udostępnij link lub wyślij e-mail z zaproszeniem',
+    confirmDeleteGroup: 'Usunąć grupę „{name}"? Wszyscy użytkownicy stracą dostęp, a lista zostanie usunięta.',
   },
   en: {
     appTitle: 'Family Shopping',
@@ -91,6 +92,7 @@ const dictionaries: Record<Lang, Dict> = {
     yourGroups: 'Your groups',
     createNewGroup: 'Create new group',
     shareInvite: 'Share the link or send an email invitation',
+    confirmDeleteGroup: 'Delete group "{name}"? Everyone loses access and the list is removed.',
   }
 };
 
