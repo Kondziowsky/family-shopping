@@ -12,6 +12,7 @@ export interface ShoppingItem {
   quantity: string | null;
   note: string | null;
   is_done: boolean;
+  sort_order: number | null;
   created_at: string;
   updated_at: string;
 }

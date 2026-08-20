@@ -26,6 +26,7 @@ create table if not exists public.shopping_items (
   quantity text,
   note text,
   is_done boolean not null default false,
+  sort_order integer,
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -177,7 +178,27 @@ as $$
   from public.shopping_items si
   join public.groups g on g.id = si.group_id
   where g.invite_code = invite
-  order by si.is_done asc, si.created_at desc;
+  order by si.is_done asc, si.sort_order asc nulls first, si.created_at desc;
+$$;
+
+-- Persist a manually reordered list: item_ids is the full list in display order.
+create or replace function public.reorder_items_for_invite(invite text, item_ids uuid[])
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  gid uuid;
+begin
+  select id into gid from public.groups where invite_code = invite;
+  if gid is null then raise exception 'Invalid invite code'; end if;
+
+  update public.shopping_items si
+  set sort_order = arr.ord
+  from unnest(item_ids) with ordinality as arr(item_id, ord)
+  where si.id = arr.item_id and si.group_id = gid;
+end;
 $$;
 
 create or replace function public.add_item_for_invite(invite text, item_name text, item_quantity text default null, item_note text default null)
@@ -244,6 +265,7 @@ grant execute on function public.join_group_by_invite(text) to authenticated;
 grant execute on function public.delete_group(uuid) to authenticated;
 grant execute on function public.get_group_by_invite(text) to anon, authenticated;
 grant execute on function public.list_items_for_invite(text) to anon, authenticated;
+grant execute on function public.reorder_items_for_invite(text, uuid[]) to anon, authenticated;
 grant execute on function public.add_item_for_invite(text, text, text, text) to anon, authenticated;
 grant execute on function public.update_item_for_invite(text, uuid, text, text, text, boolean) to anon, authenticated;
 grant execute on function public.delete_item_for_invite(text, uuid) to anon, authenticated;

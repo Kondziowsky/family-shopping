@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faListUl, faUsers, faRightToBracket, faRightFromBracket, faRotate } from '@fortawesome/free-solid-svg-icons';
+import { faListUl, faUsers, faRightToBracket, faRightFromBracket, faRotate, faBell } from '@fortawesome/free-solid-svg-icons';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs/operators';
 import { I18nService } from './i18n/i18n.service';
 import { SupabaseService } from './core/supabase.service';
+import { NotificationService } from './core/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -72,6 +73,17 @@ import { SupabaseService } from './core/supabase.service';
 
         <!-- Right -->
         <div class="flex items-center gap-2">
+          @if (notifications.supported && notifications.permission() !== 'granted') {
+            <button
+              type="button"
+              class="btn btn-secondary btn-icon"
+              (click)="notifications.requestPermission()"
+              [title]="i18n.t('enableNotifications')"
+            >
+              <fa-icon [icon]="faBell" class="text-base" />
+            </button>
+          }
+
           <button
             type="button"
             class="btn btn-secondary btn-icon"
@@ -100,12 +112,14 @@ import { SupabaseService } from './core/supabase.service';
 export class AppComponent {
   readonly i18n = inject(I18nService);
   readonly supabase = inject(SupabaseService);
+  readonly notifications = inject(NotificationService);
   private readonly swUpdate = inject(SwUpdate);
   readonly faListUl = faListUl;
   readonly faUsers = faUsers;
   readonly faRightToBracket = faRightToBracket;
   readonly faRightFromBracket = faRightFromBracket;
   readonly faRotate = faRotate;
+  readonly faBell = faBell;
   readonly updateReady = signal(false);
 
   constructor() {

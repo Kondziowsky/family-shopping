@@ -4,11 +4,12 @@ import { RouterLink } from '@angular/router';
 import { CdkAccordionModule } from '@angular/cdk/accordion';
 import { CdkDropList, CdkDrag, CdkDragHandle, moveItemInArray, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faArrowsRotate, faCheck, faChevronDown, faChevronUp, faTrash, faArrowsUpDown } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faCheck, faChevronDown, faChevronUp, faTrash, faArrowsUpDown, faPlus, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { ShoppingItem, GroupSummary } from '../../core/types';
 import { SupabaseService } from '../../core/supabase.service';
 import { NotificationService } from '../../core/notification.service';
 import { I18nService } from '../../i18n/i18n.service';
+import { FloatingButtonComponent } from '../../shared/ui/floating-button.component';
 
 @Component({
   selector: 'app-shopping-page',
@@ -22,6 +23,7 @@ import { I18nService } from '../../i18n/i18n.service';
     CdkDrag,
     CdkDragHandle,
     FaIconComponent,
+    FloatingButtonComponent,
   ],
   template: `
     <section class="grid gap-3">
@@ -46,14 +48,18 @@ import { I18nService } from '../../i18n/i18n.service';
           [expanded]="true"
         >
           <div class="flex items-center gap-2">
-            <div class="flex-1">
-              <h1 class="text-base font-bold text-slate-900 m-0">{{ i18n.t('list') }}</h1>
-            </div>
+            <h1 class="text-base font-bold text-slate-900 m-0 shrink-0">{{ i18n.t('list') }}</h1>
 
-            @if (notifications.supported && notifications.permission() !== 'granted') {
-              <button class="btn btn-secondary btn-sm text-xs" type="button" (click)="notifications.requestPermission()">
-                {{ i18n.t('enableNotifications') }}
-              </button>
+            @if (!addItemAccordion.expanded && inviteCode()) {
+              <form class="flex flex-1 gap-2" (ngSubmit)="quickAdd()">
+                <input name="quickName" [(ngModel)]="quickName" autocomplete="off"
+                  [placeholder]="i18n.t('name')" class="field flex-1 min-w-0 py-1.5 text-sm">
+                <button type="submit" class="btn btn-primary btn-icon btn-sm shrink-0" [title]="i18n.t('addItem')">
+                  <fa-icon [icon]="faPlus" />
+                </button>
+              </form>
+            } @else {
+              <div class="flex-1"></div>
             }
 
             <button
@@ -65,8 +71,8 @@ import { I18nService } from '../../i18n/i18n.service';
               <fa-icon [icon]="addItemAccordion.expanded ? faChevronUp : faChevronDown" />
             </button>
 
-            <button class="btn btn-secondary btn-icon btn-sm" type="button" (click)="load()" [title]="i18n.t('refresh')">
-              <fa-icon [icon]="faArrowsRotate" />
+            <button class="btn btn-secondary btn-icon btn-sm" type="button" (click)="refresh()" [title]="i18n.t('refresh')">
+              <fa-icon [icon]="faArrowsRotate" [class.spin-once]="refreshing()" />
             </button>
           </div>
 
@@ -145,6 +151,10 @@ import { I18nService } from '../../i18n/i18n.service';
           </article>
         }
       </div>
+
+      @if (showSaveOrder()) {
+        <app-floating-button [label]="i18n.t('saveOrder')" [icon]="faFloppyDisk" (action)="saveOrder()" />
+      }
     </section>
   `
 })
@@ -161,19 +171,25 @@ export class ShoppingPageComponent {
   readonly faCheck = faCheck;
   readonly faArrowsUpDown = faArrowsUpDown;
   readonly faTrash = faTrash;
+  readonly faPlus = faPlus;
+  readonly faFloppyDisk = faFloppyDisk;
 
   readonly inviteCode = signal<string | null>(this.supabase.savedInviteCode);
   readonly group = signal<GroupSummary | null>(null);
   readonly groups = signal<GroupSummary[]>([]);
   readonly items = signal<ShoppingItem[]>([]);
   readonly error = signal('');
+  readonly refreshing = signal(false);
+  readonly showSaveOrder = signal(false);
 
   /** Invite codes we already sent to join_group_by_invite, to avoid repeat RPCs. */
   private readonly joinedCodes = new Set<string>();
+  private saveOrderTimer?: ReturnType<typeof setTimeout>;
 
   newName = '';
   newQuantity = '';
   newNote = '';
+  quickName = '';
 
   constructor() {
     effect(() => {
@@ -203,7 +219,10 @@ export class ShoppingPageComponent {
       }
     });
 
-    this.destroyRef.onDestroy(() => this.supabase.unsubscribeItems());
+    this.destroyRef.onDestroy(() => {
+      this.supabase.unsubscribeItems();
+      clearTimeout(this.saveOrderTimer);
+    });
   }
 
   async loadGroups(): Promise<void> {
@@ -219,6 +238,13 @@ export class ShoppingPageComponent {
   switchGroup(group: GroupSummary): void {
     this.supabase.saveInviteCode(group.invite_code);
     this.inviteCode.set(group.invite_code);
+    void this.load();
+  }
+
+  /** Manual refresh with a one-shot spin on the icon. */
+  refresh(): void {
+    this.refreshing.set(true);
+    setTimeout(() => this.refreshing.set(false), 600);
     void this.load();
   }
 
@@ -264,6 +290,21 @@ export class ShoppingPageComponent {
     }
   }
 
+  /** Add with just a name, from the compact input shown while the form is collapsed. */
+  async quickAdd(): Promise<void> {
+    const invite = this.inviteCode();
+    const name = this.quickName.trim();
+    if (!invite || !name) return;
+
+    try {
+      await this.supabase.addItem(invite, { name });
+      this.quickName = '';
+      await this.load();
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : this.i18n.t('error'));
+    }
+  }
+
   async toggle(item: ShoppingItem): Promise<void> {
     const invite = this.inviteCode();
     if (!invite) return;
@@ -286,5 +327,23 @@ export class ShoppingPageComponent {
     const current = [...this.items()];
     moveItemInArray(current, event.previousIndex, event.currentIndex);
     this.items.set(current);
+
+    // Offer to persist the new order for 3 seconds; each drag resets the window.
+    this.showSaveOrder.set(true);
+    clearTimeout(this.saveOrderTimer);
+    this.saveOrderTimer = setTimeout(() => this.showSaveOrder.set(false), 3000);
+  }
+
+  async saveOrder(): Promise<void> {
+    clearTimeout(this.saveOrderTimer);
+    this.showSaveOrder.set(false);
+    const invite = this.inviteCode();
+    if (!invite) return;
+
+    try {
+      await this.supabase.reorderItems(invite, this.items().map(i => i.id));
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : this.i18n.t('error'));
+    }
   }
 }

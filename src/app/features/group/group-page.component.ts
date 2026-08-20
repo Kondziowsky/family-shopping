@@ -39,8 +39,8 @@ import { I18nService } from '../../i18n/i18n.service';
         @if (groups().length > 0) {
           <div class="flex items-center gap-3 px-1">
             <span class="text-xs font-bold text-slate-400 uppercase tracking-widest flex-1">{{ i18n.t('yourGroups') }}</span>
-            <button class="btn btn-secondary btn-sm" type="button" (click)="loadGroups()">
-              <fa-icon [icon]="faArrowsRotate" />
+            <button class="btn btn-secondary btn-sm" type="button" (click)="refresh()">
+              <fa-icon [icon]="faArrowsRotate" [class.spin-once]="refreshing()" />
             </button>
           </div>
         }
@@ -74,7 +74,13 @@ import { I18nService } from '../../i18n/i18n.service';
               <label class="gap-1">{{ i18n.t('inviteLink') }}
                 <div class="flex gap-2 mt-1">
                   <input class="field flex-1 min-w-0 text-sm font-mono" readonly [value]="inviteLink(group)">
-                  <button class="btn btn-secondary btn-sm shrink-0" type="button" (click)="copy(group)">{{ i18n.t('copy') }}</button>
+                  <button
+                    class="btn btn-sm shrink-0"
+                    [class.btn-secondary]="copiedId() !== group.id"
+                    [class.btn-success]="copiedId() === group.id"
+                    type="button"
+                    (click)="copy(group)"
+                  >{{ copiedId() === group.id ? i18n.t('copied') : i18n.t('copy') }}</button>
                 </div>
               </label>
 
@@ -99,7 +105,6 @@ import { I18nService } from '../../i18n/i18n.service';
         }
       }
 
-      @if (copied()) { <p class="text-green-700 text-sm font-semibold">✓ {{ i18n.t('copied') }}</p> }
       @if (error()) { <p class="text-red-700 text-sm">{{ error() }}</p> }
     </section>
   `
@@ -109,7 +114,8 @@ export class GroupPageComponent {
   readonly i18n = inject(I18nService);
   readonly groups = signal<GroupSummary[]>([]);
   readonly error = signal('');
-  readonly copied = signal(false);
+  readonly copiedId = signal('');
+  readonly refreshing = signal(false);
   readonly inviteSent = signal('');
   readonly activeInvite = signal<string | null>(this.supabase.savedInviteCode);
   readonly baseUrl = computed(() => window.location.origin);
@@ -156,7 +162,18 @@ export class GroupPageComponent {
       this.groups.set(this.groups().filter(g => g.id !== group.id));
     } catch (err) { this.error.set(err instanceof Error ? err.message : this.i18n.t('error')); }
   }
-  async copy(group: GroupSummary): Promise<void> { await navigator.clipboard.writeText(this.inviteLink(group)); this.copied.set(true); }
+  /** Manual refresh with a one-shot spin on the icon. */
+  refresh(): void {
+    this.refreshing.set(true);
+    setTimeout(() => this.refreshing.set(false), 600);
+    void this.loadGroups();
+  }
+
+  async copy(group: GroupSummary): Promise<void> {
+    await navigator.clipboard.writeText(this.inviteLink(group));
+    this.copiedId.set(group.id);
+    setTimeout(() => { if (this.copiedId() === group.id) this.copiedId.set(''); }, 2000);
+  }
 
   async sendInvite(group: GroupSummary): Promise<void> {
     const email = (this.inviteEmails[group.id] ?? '').trim();

@@ -50,6 +50,7 @@ const dictionaries: Record<Lang, Dict> = {
     shareInvite: 'Udostępnij link lub wyślij e-mail z zaproszeniem',
     confirmDeleteGroup: 'Usunąć grupę „{name}"? Wszyscy użytkownicy stracą dostęp, a lista zostanie usunięta.',
     active: 'Aktywna',
+    saveOrder: 'Zapisz kolejność',
   },
   en: {
     appTitle: 'Family Shopping',
@@ -95,6 +96,7 @@ const dictionaries: Record<Lang, Dict> = {
     shareInvite: 'Share the link or send an email invitation',
     confirmDeleteGroup: 'Delete group "{name}"? Everyone loses access and the list is removed.',
     active: 'Active',
+    saveOrder: 'Save order',
   }
 };
 

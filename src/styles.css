@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@keyframes spin-once {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fab-enter {
+  from { opacity: 0; transform: translateY(12px) scale(0.95); }
+  to { opacity: 1; transform: none; }
+}
+.fab-enter { animation: fab-enter 0.2s ease-out; }
+
 @layer base {
   body {
     font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -23,8 +34,12 @@
   .btn-primary   { @apply bg-blue-600 text-white hover:bg-blue-700; }
   .btn-secondary { @apply bg-slate-100 text-slate-800 hover:bg-slate-200; }
   .btn-danger    { @apply bg-red-600 text-white hover:bg-red-700; }
+  .btn-success   { @apply bg-green-600 text-white hover:bg-green-700; }
   .btn-sm        { @apply px-3 py-1.5 text-sm rounded-lg; }
   .btn-icon      { @apply p-2; }
+
+  /* One-shot 360° spin, e.g. on a refresh button click. */
+  .spin-once { animation: spin-once 0.6s ease-in-out; }
 
   /* ── Card ── */
   .card {
